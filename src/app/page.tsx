@@ -8,6 +8,7 @@ import {
   Line,
   LetterFx,
 } from "@/once-ui/components";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -31,6 +32,9 @@ export default function Home() {
         <Button id="docs" href="https://docs.once-ui.com/once-ui/quick-start" data-border="rounded" weight="default" prefixIcon="copy" arrowIcon>
           Explore docs
         </Button>
+        <Link href="/marketplace">
+          <Button weight="strong" size="m">Go to Marketplace</Button>
+        </Link>
       </Column>
     </Column>
   );

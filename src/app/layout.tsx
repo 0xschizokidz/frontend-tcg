@@ -1,5 +1,9 @@
 import "@/once-ui/styles/index.scss";
 import "@/once-ui/tokens/index.scss";
+import type { Metadata } from "next";
+
+import ContextProvider from "./providers";
+import { headers } from "next/headers";
 
 import classNames from "classnames";
 
@@ -7,30 +11,34 @@ import { baseURL, style, meta, font, effects } from "@/app/resources/once-ui.con
 import { Background, Column, Flex, ToastProvider, ThemeProvider } from "@/once-ui/components";
 
 import { opacity, SpacingToken } from "@/once-ui/types";
-import { Meta, Schema } from "@/once-ui/modules";
 import { chart } from "./resources/data.config";
 
-export async function generateMetadata() {
-  return Meta.generate({
-    title: meta.home.title,
-    description: meta.home.description,
-    baseURL: baseURL,
-    path: meta.home.path,
-    canonical: meta.home.canonical,
-    image: meta.home.image,
-    robots: meta.home.robots,
-    alternates: meta.home.alternates,
-  });
-}
+export const metadata: Metadata = {
+  title: 'TCG DApp',
+  description: 'A decentralized NFT marketplace for buying, selling, and trading digital assets.',
+  metadataBase: new URL(baseURL),
+  openGraph: {
+    title: 'NFT Marketplace',
+    description: 'Decentralized NFT trading platform',
+    images: '/og-image.jpg',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NFT Marketplace',
+    description: 'Trade digital assets on-chain',
+  },
+};
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const cookies = headersList.get("cookie");
+
   return (
     <Flex
-      suppressHydrationWarning
       as="html"
       lang="en"
       fillHeight
@@ -53,36 +61,6 @@ export default function RootLayout({
         font.code.variable,
       )}
     >
-      <Schema
-        as="webPage"
-        baseURL={baseURL}
-        title={meta.home.title}
-        description={meta.home.description}
-        path={meta.home.path}
-      />
-      <head>
-        <script
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: <It's not dynamic nor a security issue.>
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  const theme = localStorage.getItem('theme') || 'system';
-                  const root = document.documentElement;
-                  if (theme === 'system') {
-                    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    root.setAttribute('data-theme', isDark ? 'dark' : 'light');
-                  } else {
-                    root.setAttribute('data-theme', theme);
-                  }
-                } catch (e) {
-                  document.documentElement.setAttribute('data-theme', 'dark');
-                }
-              })();
-            `,
-          }}
-        />
-      </head>
       <ThemeProvider>
         <ToastProvider>
           <Column as="body" fillWidth margin="0" padding="0">
@@ -127,7 +105,27 @@ export default function RootLayout({
                 color: effects.lines.color,
               }}
             />
-            {children}
+            <ContextProvider cookies={cookies}>
+              {/* Header */}
+              <header className="bg-white shadow-sm sticky top-0 z-10">
+                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+                  <h1 className="text-xl font-bold text-indigo-600">NFT Marketplace</h1>
+                  <w3m-button />
+                </div>
+              </header>
+
+              {/* Main Content */}
+              <main className="flex-grow">
+                {children}
+              </main>
+
+              {/* Footer */}
+              <footer className="bg-white py-6 mt-12">
+                <div className="container mx-auto px-4 text-center text-gray-500">
+                  © {new Date().getFullYear()} NFT Marketplace. All rights reserved.
+                </div>
+              </footer>
+            </ContextProvider>
           </Column>
         </ToastProvider>
       </ThemeProvider>
